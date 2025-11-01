@@ -1,0 +1,107 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Conferences</h2>
+    <button class="btn btn-primary" (click)="startCreate()" data-bs-toggle="modal" data-bs-target="#confModal">New Conference</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Date</th>
+          <th>Duration</th>
+          <th>Registered</th>
+          <th>Score</th>
+          <th style="width: 140px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of svc.items(); track c.id) {
+          <tr>
+            <td>{{ c.title }}</td>
+            <td>{{ c.type }}</td>
+            <td>{{ c.date | date: 'yyyy-MM-dd' }}</td>
+            <td>{{ c.duration }}</td>
+            <td>{{ c.registered }}</td>
+            <td>{{ c.score }}</td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary" (click)="startEdit(c)" data-bs-toggle="modal" data-bs-target="#confModal">Edit</button>
+                <button class="btn btn-outline-danger" (click)="remove(c)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="text-center text-muted">No data</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <nav class="mt-3" *ngIf="svc.totalPages() > 1">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="svc.currentPage() === 0">
+        <a class="page-link" (click)="load(0)">First</a>
+      </li>
+      @for (p of pages(); track p) {
+        <li class="page-item" [class.active]="svc.currentPage() === p">
+          <a class="page-link" (click)="load(p)">{{ p + 1 }}</a>
+        </li>
+      }
+      <li class="page-item" [class.disabled]="svc.currentPage() >= svc.totalPages() - 1">
+        <a class="page-link" (click)="load(svc.totalPages() - 1)">Last</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ editing() ? 'Edit Conference' : 'New Conference' }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="save()" #f="ngForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Title</label>
+              <input class="form-control" [(ngModel)]="form().title" name="title" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Type</label>
+              <select class="form-select" [(ngModel)]="form().type" name="type" required>
+                <option value="ACADEMIC">ACADEMIC</option>
+                <option value="COMMERCIAL">COMMERCIAL</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control" [(ngModel)]="form().date" name="date" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Duration</label>
+              <input type="number" class="form-control" [(ngModel)]="form().duration" name="duration" min="0" step="1">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Registered</label>
+              <input type="number" class="form-control" [(ngModel)]="form().registered" name="registered" min="0" step="1">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Score</label>
+              <input type="number" class="form-control" [(ngModel)]="form().score" name="score" min="0" step="0.1">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" (click)="save()" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
