@@ -5,10 +5,11 @@ import {
 } from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {routes} from './app.routes';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {
+  INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
+  includeBearerTokenInterceptor,
   provideKeycloak,
-
 } from 'keycloak-angular';
 import {environment} from '../environments/environment';
 
@@ -27,7 +28,16 @@ export const provideKeycloakAngular = () =>
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([includeBearerTokenInterceptor])),
+    {
+      provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
+      useValue: [
+        {
+          urlPattern: /^(http:\/\/localhost:8888)(\/.*)?$/i,
+          httpMethods: ['GET', 'POST'] // Token added only for GET and POST
+        }
+      ]
+    },
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
