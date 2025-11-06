@@ -1,11 +1,15 @@
-import { Injectable, signal } from '@angular/core';
-import { GATEWAY_BASE_URL, httpJson } from './api-base';
-import type { Keynote } from '../models/keynote';
-import type { PagedResponse } from '../models/paged-response';
+import {inject, Injectable, signal} from '@angular/core';
+import {GATEWAY_BASE_URL} from './api-base';
+import type {Keynote} from '../models/keynote';
+import type {PagedResponse} from '../models/paged-response';
+import {HttpClient} from '@angular/common/http';
+import {lastValueFrom} from 'rxjs';
+import type {Conference} from '../models/conference';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class KeynotesService {
-  private readonly base = `${GATEWAY_BASE_URL}/keynote-service/keynotes`;
+  private readonly base = `${GATEWAY_BASE_URL}/keynote-service/api/keynotes`;
+  private readonly http = inject(HttpClient);
 
   readonly items = signal<Keynote[]>([]);
   readonly loading = signal(false);
@@ -19,9 +23,7 @@ export class KeynotesService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await httpJson<PagedResponse<Keynote>>(
-        `${this.base}?page=${page}&size=${size}`
-      );
+      const res = await lastValueFrom(this.http.get<PagedResponse<Keynote>>(`${this.base}?page=${page}&size=${size}`));
       this.items.set(res.content);
       this.currentPage.set(res.currentPage);
       this.totalPages.set(res.totalPages);
@@ -34,24 +36,19 @@ export class KeynotesService {
   }
 
   getById(id: string) {
-    return httpJson<Keynote>(`${this.base}/${id}`);
+    return lastValueFrom(this.http.get<Keynote>(`${this.base}/${id}`));
   }
 
   create(item: Omit<Keynote, 'id'>) {
-    return httpJson<Keynote>(this.base, {
-      method: 'POST',
-      body: JSON.stringify(item),
-    });
+    return lastValueFrom(this.http.post<Keynote>(this.base, item));
   }
 
   update(id: string, item: Omit<Keynote, 'id'>) {
-    return httpJson<Keynote>(`${this.base}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(item),
-    });
+    return lastValueFrom(this.http.put<Keynote>(`${this.base}/${id}`, item));
+
   }
 
   remove(id: string) {
-    return httpJson<void>(`${this.base}/${id}`, { method: 'DELETE' });
+    return lastValueFrom(this.http.delete<void>(`${this.base}/${id}`));
   }
 }

@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { KeynotesService } from '../../services/keynotes.service';
-import type { Keynote } from '../../models/keynote';
+import {Component, OnInit, signal, computed} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {KeynotesService} from '../../services/keynotes.service';
+import type {Keynote} from '../../models/keynote';
 
 @Component({
   selector: 'app-keynotes-page',
@@ -11,14 +11,15 @@ import type { Keynote } from '../../models/keynote';
   templateUrl: './keynotes.page.html'
 })
 export class KeynotesPage implements OnInit {
-  constructor(public svc: KeynotesService) {}
+  constructor(public svc: KeynotesService) {
+  }
 
   ngOnInit() {
     this.load();
   }
 
   readonly editing = signal<Keynote | null>(null);
-  readonly form = signal<Partial<Keynote>>({ firstName: '', lastName: '', email: '', functionality: '' });
+  readonly form = signal<Partial<Keynote>>({firstName: '', lastName: '', email: '', functionality: ''});
 
   load(page?: number) {
     this.svc.list(page ?? this.svc.currentPage(), this.svc.pageSize());
@@ -26,12 +27,17 @@ export class KeynotesPage implements OnInit {
 
   startCreate() {
     this.editing.set(null);
-    this.form.set({ firstName: '', lastName: '', email: '', functionality: '' });
+    this.form.set({firstName: '', lastName: '', email: '', functionality: ''});
   }
 
   startEdit(item: Keynote) {
     this.editing.set(item);
-    this.form.set({ firstName: item.firstName, lastName: item.lastName, email: item.email, functionality: item.functionality });
+    this.form.set({
+      firstName: item.firstName,
+      lastName: item.lastName,
+      email: item.email,
+      functionality: item.functionality
+    });
   }
 
   async save() {
@@ -54,5 +60,5 @@ export class KeynotesPage implements OnInit {
     await this.svc.list(this.svc.currentPage(), this.svc.pageSize());
   }
 
-  pages = computed(() => Array.from({ length: this.svc.totalPages() }, (_, i) => i));
+  pages = computed(() => Array.from({length: this.svc.totalPages()}, (_, i) => i));
 }

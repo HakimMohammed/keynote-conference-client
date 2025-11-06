@@ -1,11 +1,15 @@
-import { Injectable, signal } from '@angular/core';
-import { GATEWAY_BASE_URL, httpJson } from './api-base';
-import type { Review } from '../models/review';
-import type { PagedResponse } from '../models/paged-response';
+import {inject, Injectable, signal} from '@angular/core';
+import {GATEWAY_BASE_URL} from './api-base';
+import type {Review} from '../models/review';
+import type {PagedResponse} from '../models/paged-response';
+import {lastValueFrom} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class ReviewsService {
-  private readonly base = `${GATEWAY_BASE_URL}/conference-service/reviews`;
+  private readonly base = `${GATEWAY_BASE_URL}/conference-service/api/reviews`;
+  private readonly http = inject(HttpClient);
+
 
   readonly items = signal<Review[]>([]);
   readonly loading = signal(false);
@@ -19,9 +23,8 @@ export class ReviewsService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await httpJson<PagedResponse<Review>>(
-        `${this.base}?page=${page}&size=${size}`
-      );
+      const res = await lastValueFrom(this.http.get<PagedResponse<Review>>(`${this.base}?page=${page}&size=${size}`));
+
       this.items.set(res.content);
       this.currentPage.set(res.currentPage);
       this.totalPages.set(res.totalPages);
@@ -34,24 +37,20 @@ export class ReviewsService {
   }
 
   getById(id: string) {
-    return httpJson<Review>(`${this.base}/${id}`);
+    return lastValueFrom(this.http.get<Review>(`${this.base}/${id}`));
   }
 
   create(item: Omit<Review, 'id'>) {
-    return httpJson<Review>(this.base, {
-      method: 'POST',
-      body: JSON.stringify(item),
-    });
+    return lastValueFrom(this.http.post<Review>(this.base, item));
+
   }
 
   update(id: string, item: Omit<Review, 'id'>) {
-    return httpJson<Review>(`${this.base}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(item),
-    });
+    return lastValueFrom(this.http.put<Review>(`${this.base}/${id}`, item));
+
   }
 
   remove(id: string) {
-    return httpJson<void>(`${this.base}/${id}`, { method: 'DELETE' });
+    return lastValueFrom(this.http.delete<void>(`${this.base}/${id}`));
   }
 }
